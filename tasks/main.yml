@@ -18,20 +18,25 @@
     - git
     - python-psycopg2
     - build-essential # for bcrypt?
+    - apt-transport-https # for node apt repository
 
-- name: Download NodeJS Helper
-  get_url:
-    url: https://deb.nodesource.com/setup_8.x
-    dest: /tmp/setup_node.sh
-    mode: 0755
-  register: node_helper_dl
+# Configure nodejs
+- name: Install NodeJS apt key
+  apt_key:
+    url: https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+    state: present
 
-- name: Run NodeJS Helper
-  shell: /tmp/setup_node.sh
-  when: node_helper_dl is changed
+- name: Add NodeJS apt repository
+  apt_repository:
+    repo: deb https://deb.nodesource.com/node_9.x "{{ ansible_distribution_release }}" main
+    state: present
+    filename: nodesource
 
 - name: Install NodeJS
-  apt: pkg=nodejs state=latest
+  apt:
+    update_cache: yes
+    pkg: nodejs
+    state: latest
 
 - name: Install Yarn apt key
   apt_key:
