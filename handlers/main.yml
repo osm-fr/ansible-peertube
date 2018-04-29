@@ -7,3 +7,7 @@
     enabled: yes
     state: started
 
+- name: reload nginx
+  service:
+    name: nginx
+    state: reloaded

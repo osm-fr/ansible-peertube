@@ -143,6 +143,8 @@
     src: /etc/nginx/sites-available/peertube
     dest: /etc/nginx/sites-enabled/peertube
     state: link
+  notify:
+    - reload nginx
 
 - name: Install Stretch backports repo
   apt_repository:
