@@ -47,6 +47,7 @@
   apt_repository:
     repo: deb https://dl.yarnpkg.com/debian/ stable main
     state: present
+    filename: yarn
 
 - name: Install Yarn
   apt: pkg=yarn state=latest
