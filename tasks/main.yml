@@ -58,7 +58,7 @@
 - name: Add peertube user
   user:
     name: peertube
-    home: /var/www/peertube
+    home: "{{ peertube_user_path }}"
     shell: /bin/bash
     password: "{{ peertube_user_password_hashed }}"
 
@@ -78,7 +78,7 @@
 
 - name: Create required directories
   file:
-    path: /var/www/peertube/{{ item }}
+    path: "{{ peertube_user_path }}/{{ item }}"
     state: directory
     owner: peertube
     group: peertube
@@ -88,13 +88,13 @@
     - storage
     - versions
 
-- stat: path=/var/www/peertube/versions/peertube-{{ peertube_version }}
+- stat: path={{ peertube_user_path }}/versions/peertube-{{ peertube_version }}
   register: peertube_version_dir
 
 - name: Download and extract Peertube
   unarchive:
     src: "https://github.com/Chocobozzz/PeerTube/releases/download/{{ peertube_version }}/peertube-{{ peertube_version }}.zip"
-    dest: /var/www/peertube/versions
+    dest: "{{ peertube_user_path }}/versions"
     remote_src: yes
     owner: peertube
     group: peertube
@@ -103,15 +103,15 @@
 
 - name: Create symlink peertube-latest
   file:
-    src: "/var/www/peertube/versions/peertube-{{ peertube_version }}"
-    dest: /var/www/peertube/peertube-latest
+    src: "{{ peertube_user_path }}/versions/peertube-{{ peertube_version }}"
+    dest: "{{ peertube_user_path }}/peertube-latest"
     state: link
     owner: peertube
     group: peertube
 
 - name: Change owner of all peertube directories # seems setting owner on unarchive is not enough…
   file:
-    path: /var/www/peertube
+    path: "{{ peertube_user_path }}"
     owner: peertube
     group: peertube
     recurse: yes
@@ -120,14 +120,14 @@
   become: true
   become_user: peertube
   shell: |
-    cd /var/www/peertube/peertube-latest
+    cd "{{ peertube_user_path }}/peertube-latest"
     yarn install --production --pure-lockfile
   when: fresh_install is changed
 
 - name: Copy production.yaml
   copy:
     src: files/production.yaml
-    dest: /var/www/peertube/config/production.yaml
+    dest: "{{ peertube_user_path }}/config/production.yaml"
     owner: peertube
     group: peertube
     mode: 0644
@@ -203,9 +203,9 @@
   become: true
   become_user: peertube
   lineinfile:
-    path: /var/www/peertube/.bashrc
+    path: "{{ peertube_user_path }}/.bashrc"
     state: present
-    line: 'export PATH="$PATH:/var/www/peertube/peertube-latest/dist/server/tools/"'
+    line: 'export PATH="$PATH:{{ peertube_user_path }}/peertube-latest/dist/server/tools/"'
 
 - name: npm install
   become: true
@@ -219,10 +219,10 @@
   become: true
   become_user: peertube
   shell: |-1
-    cd /var/www/peertube/peertube-latest
+    cd "{{ peertube_user_path }}/peertube-latest"
     yarn add commander
     # FIXME escape characters
-    echo "{{ web_admin_password }}" | NODE_CONFIG_DIR=/var/www/peertube/config NODE_ENV=production npm run reset-password -- -u root
+    echo "{{ web_admin_password }}" | NODE_CONFIG_DIR={{ peertube_user_path }}/config NODE_ENV=production npm run reset-password -- -u root
   when:
   - fresh_install # is changed
   - web_admin_password is defined

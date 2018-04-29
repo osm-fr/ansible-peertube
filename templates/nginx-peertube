@@ -49,13 +49,13 @@ server {
   location ~ ^/client/(.*\.(js|css|woff2|otf|ttf|woff|eot))$ {
     add_header Cache-Control "public, max-age=31536000, immutable";
 
-    alias /var/www/peertube/peertube-latest/client/dist/$1;
+    alias {{ peertube_user_path }}/peertube-latest/client/dist/$1;
   }
 
   location ~ ^/static/(thumbnails|avatars)/(.*)$ {
     add_header Cache-Control "public, max-age=31536000, immutable";
 
-    alias /var/www/peertube/storage/$1/$2;
+    alias {{ peertube_user_path }}/storage/$1/$2;
   }
 
   location / {
@@ -96,7 +96,7 @@ server {
       access_log off;
     }
 
-    alias /var/www/peertube/storage/videos;
+    alias {{ peertube_user_path }}/storage/videos;
   }
 
   # Websocket tracker

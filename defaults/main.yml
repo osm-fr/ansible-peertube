@@ -2,5 +2,6 @@
 # defaults file for peertube
 peertube_tld: localhost
 peertube_version: v1.0.0-beta.3
+peertube_user_path: /var/www/peertube
 peertube_dbuser_password: "{{ lookup('password', 'credentials/peertube/db-' + inventory_hostname) }}"
 peertube_user_password_hashed: "{{ lookup('password', 'credentials/peertube/user-' + inventory_hostname) |password_hash('sha512') }}"
