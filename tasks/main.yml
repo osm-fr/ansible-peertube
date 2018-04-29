@@ -50,7 +50,10 @@
     filename: yarn
 
 - name: Install Yarn
-  apt: pkg=yarn state=latest
+  apt:
+    update_cache: yes
+    pkg: yarn
+    state: latest
 
 - name: Add peertube user
   user:
