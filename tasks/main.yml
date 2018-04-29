@@ -194,7 +194,7 @@
 
 - name: Install Peertube daemon
   copy:
-    src: "{{ role_path }}/files/peertube.service"
+    src: files/peertube.service"
     dest: /etc/systemd/system/
   notify:
     - install peertube daemon
