@@ -224,8 +224,8 @@
     cd "{{ peertube_user_path }}/peertube-latest"
     yarn add commander
     # FIXME escape characters
-    echo "{{ web_admin_password }}" | NODE_CONFIG_DIR={{ peertube_user_path }}/config NODE_ENV=production npm run reset-password -- -u root
+    echo "{{ peertube_web_admin_password }}" | NODE_CONFIG_DIR={{ peertube_user_path }}/config NODE_ENV=production npm run reset-password -- -u root
   when:
   - fresh_install # is changed
-  - web_admin_password is defined
+  - peertube_web_admin_password is defined
 
