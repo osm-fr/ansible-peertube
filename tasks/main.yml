@@ -19,6 +19,7 @@
     - python-psycopg2
     - build-essential # for bcrypt?
     - apt-transport-https # for node apt repository
+    - python-ruamel.yaml
 
 # Configure nodejs
 - name: Install NodeJS apt key
@@ -126,11 +127,42 @@
 
 - name: Copy production.yaml
   copy:
-    src: files/production.yaml
+    src: "{{ peertube_user_path }}/peertube-latest/config/production.yaml.example"
     dest: "{{ peertube_user_path }}/config/production.yaml"
+    remote_src: yes
+    force: no
     owner: peertube
     group: peertube
     mode: 0644
+
+- name: Edit production.yaml
+  yedit:
+    src: "{{ peertube_user_path }}/config/production.yaml"
+    edits:
+      - key: webserver.hostname
+        value: "{{ peertube_tld }}"
+      - key: database.password
+        value: "{{ peertube_dbuser_password }}"
+      - key: smtp.from_address
+        value: "admin@{{ peertube_tld }}"
+      - key: storage.avatars
+        value: "{{ peertube_user_path }}/storage/avatars/"
+      - key: storage.videos
+        value: "{{ peertube_user_path }}/storage/videos/"
+      - key: storage.logs
+        value: "{{ peertube_user_path }}/storage/logs/"
+      - key: storage.previews
+        value: "{{ peertube_user_path }}/storage/previews/"
+      - key: storage.thumbnails
+        value: "{{ peertube_user_path }}/storage/thumbnails/"
+      - key: storage.torrents
+        value: "{{ peertube_user_path }}/storage/torrents/"
+      - key: storage.cache
+        value: "{{ peertube_user_path }}/storage/cache/"
+      - key: admin.email
+        value: "admin@{{ peertube_tld }}"
+      - key: instance.name
+        value: "{{ peertube_tld }}"
 
 - name: Copy nginx conf file
   template:
