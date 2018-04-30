@@ -168,6 +168,19 @@
   notify:
     - restart peertube daemon
 
+- name: Add proxy production.yaml
+  yedit:
+    src: "{{ peertube_user_path }}/config/production.yaml"
+    append: yes
+    key: trust_proxy
+    value: "{{ item }}"
+  with_items:
+    - 10.0.0.26
+    - 10.0.0.27
+    - 10.0.0.28
+  notify:
+    - restart peertube daemon
+
 - name: Copy nginx conf file
   template:
     src: "nginx-peertube"
