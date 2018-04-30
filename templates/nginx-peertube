@@ -1,7 +1,7 @@
 server {
   listen 80;
   listen [::]:80;
-  server_name {{ peertube_tld }}
+  server_name {{ peertube_tld }};
 
   access_log /var/log/nginx/{{ peertube_tld }}.access.log;
   error_log /var/log/nginx/{{ peertube_tld }}.error.log;
