@@ -193,8 +193,8 @@
   service: name=nginx state=reloaded
 
 - name: Install Peertube daemon
-  copy:
-    src: files/peertube.service"
+  template:
+    src: peertube.service
     dest: /etc/systemd/system/
   notify:
     - install peertube daemon
