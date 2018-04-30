@@ -134,6 +134,8 @@
     owner: peertube
     group: peertube
     mode: 0644
+  notify:
+    - restart peertube daemon
 
 - name: Edit production.yaml
   yedit:
@@ -163,6 +165,8 @@
         value: "admin@{{ peertube_tld }}"
       - key: instance.name
         value: "{{ peertube_tld }}"
+  notify:
+    - restart peertube daemon
 
 - name: Copy nginx conf file
   template:
