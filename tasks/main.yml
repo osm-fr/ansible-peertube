@@ -203,6 +203,14 @@
     state: present
     line: 'export PATH="$PATH:/var/www/peertube/peertube-latest/dist/server/tools/"'
 
+- name: npm install
+  become: true
+  become_user: peertube
+  shell: NODE_CONFIG_DIR={{ peertube_user_path }}/config NODE_ENV=production npm install
+  args:
+    chdir: "{{ peertube_user_path }}/peertube-latest"
+  when: fresh_install is changed
+
 - name: Change admin password
   become: true
   become_user: peertube
