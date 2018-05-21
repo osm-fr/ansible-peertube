@@ -8,7 +8,7 @@ galaxy_info:
 
   min_ansible_version: 1.6
 
-  platform:
+  platforms:
   - name: Debian
     versions:
     - stretch
@@ -19,6 +19,6 @@ galaxy_info:
     - peertube
 
 dependencies:
-  - src: git+//github.com/kwoodson/yedit.git
+  - src: git+https://github.com/kwoodson/yedit.git
     version: 92d9689ececeab744e1dd6356ef57fda781a1aae
     name: yedit
