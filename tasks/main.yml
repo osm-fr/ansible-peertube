@@ -275,6 +275,7 @@
     # FIXME escape characters
     echo "{{ peertube_web_admin_password }}" | NODE_CONFIG_DIR={{ peertube_user_path }}/config NODE_ENV=production npm run reset-password -- -u root
   when:
+  - peertube_version_dir.stat.exists == False
   - fresh_install # is changed
   - peertube_web_admin_password is defined
 
