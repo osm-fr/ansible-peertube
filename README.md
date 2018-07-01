@@ -34,6 +34,11 @@ nginx configuration.
 peertube_proxy_handle_https: no
 ```
 
+List of IPs used by optional reverse proxy. For example, it can be set to `[10.0.0.1, 10.0.0.2]`.
+```
+peertube_proxy_ips: []
+```
+
 Password for database. Default value is automatically calculated, and stored in `credentials/peertube/db-$hostname`
 ```
 peertube_dbuser_password: "{{ lookup('password', 'credentials/peertube/db-' + inventory_hostname) }}"
