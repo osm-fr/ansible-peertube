@@ -209,6 +209,7 @@
     state: latest
     default_release: stretch-backports
   register: certbot_installed
+  when: peertube_proxy_handle_https != 'yes'
 
 - name: Install Letsencrypt certificate
   shell: |
@@ -220,7 +221,9 @@
       --agree-tos \
       --pre-hook "systemctl stop nginx" \
       --post-hook "systemctl start nginx"
-  when: certbot_installed is changed
+  when:
+    - certbot_installed is changed
+    - peertube_proxy_handle_https != 'yes'
 
 - name: Insert Let's encrypt certificates in nginx
   blockinfile:
@@ -232,6 +235,7 @@
 
     insertbefore: ".*# Security hardening.*"
     state: present
+  when: peertube_proxy_handle_https != 'yes'
 
 - name: Reload nginx
   service: name=nginx state=reloaded

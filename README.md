@@ -27,6 +27,13 @@ Path where to install Peertube.
 peertube_user_path: /var/www/peertube
 ```
 
+Set if https is handled by a reverse proxy instead of this nginx server. It
+will be used to remove the certbot configuration phase, and remove https from
+nginx configuration.
+```
+peertube_proxy_handle_https: no
+```
+
 Password for database. Default value is automatically calculated, and stored in `credentials/peertube/db-$hostname`
 ```
 peertube_dbuser_password: "{{ lookup('password', 'credentials/peertube/db-' + inventory_hostname) }}"
