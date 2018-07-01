@@ -102,6 +102,9 @@
   when: peertube_version_dir.stat.exists == False
   register: fresh_install
 
+- stat: path={{ peertube_user_path }}/peertube-latest
+  register: peertube_latest_dir
+
 - name: Create symlink peertube-latest
   file:
     src: "{{ peertube_user_path }}/versions/peertube-{{ peertube_version }}"
@@ -109,6 +112,7 @@
     state: link
     owner: peertube
     group: peertube
+  when: peertube_latest_dir.stat.exists == False
 
 - name: Change owner of all peertube directories # seems setting owner on unarchive is not enough…
   file:
