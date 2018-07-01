@@ -278,4 +278,3 @@
   - peertube_version_dir.stat.exists == False
   - fresh_install # is changed
   - peertube_web_admin_password is defined
-
