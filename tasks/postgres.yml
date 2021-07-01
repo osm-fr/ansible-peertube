@@ -1,0 +1,13 @@
+- name: Add peertube user in Postgres
+  become: yes
+  become_user: postgres
+  postgresql_user:
+    name: peertube
+    password: "{{ peertube_dbuser_password }}"
+
+- name: Add Postgres database
+  become: yes
+  become_user: postgres
+  postgresql_db:
+    name: peertube_prod
+    owner: peertube

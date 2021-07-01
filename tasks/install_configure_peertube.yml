@@ -1,0 +1,156 @@
+
+- name: Add peertube user
+  user:
+    name: peertube
+    home: "{{ peertube_user_path }}"
+    shell: /bin/bash
+    password: "{{ peertube_user_password_hashed }}"
+
+- name: Create required directories
+  file:
+    path: "{{ peertube_user_path }}/{{ item }}"
+    state: directory
+    owner: peertube
+    group: peertube
+    mode: 0755
+  with_items:
+    - config
+    - storage
+    - versions
+
+- stat: path={{ peertube_user_path }}/versions/peertube-{{ peertube_version }}
+  register: peertube_version_dir
+
+- name: Download and extract Peertube
+  unarchive:
+    src: "https://github.com/Chocobozzz/PeerTube/releases/download/{{ peertube_version }}/peertube-{{ peertube_version }}.zip"
+    dest: "{{ peertube_user_path }}/versions"
+    remote_src: yes
+    owner: peertube
+    group: peertube
+  when: peertube_version_dir.stat.exists == False
+  register: fresh_install
+
+- stat: path={{ peertube_user_path }}/peertube-latest
+  register: peertube_latest_dir
+
+- name: Create symlink peertube-latest
+  file:
+    src: "{{ peertube_user_path }}/versions/peertube-{{ peertube_version }}"
+    dest: "{{ peertube_user_path }}/peertube-latest"
+    state: link
+    owner: peertube
+    group: peertube
+  when: peertube_latest_dir.stat.exists == False
+
+- name: Change owner of all peertube directories # seems setting owner on unarchive is not enough…
+  file:
+    path: "{{ peertube_user_path }}"
+    owner: peertube
+    group: peertube
+    recurse: yes
+
+- name: Yarn install
+  become: true
+  become_user: peertube
+  shell: |
+    cd "{{ peertube_user_path }}/peertube-latest"
+    yarn install --production --pure-lockfile
+  when: fresh_install is changed
+
+- name: Copy production.yaml
+  copy:
+    src: "{{ peertube_user_path }}/peertube-latest/config/production.yaml.example"
+    dest: "{{ peertube_user_path }}/config/production.yaml"
+    remote_src: yes
+    force: no
+    owner: peertube
+    group: peertube
+    mode: 0644
+  notify:
+    - restart peertube daemon
+
+- name: Edit production.yaml
+  yedit:
+    src: "{{ peertube_user_path }}/config/production.yaml"
+    edits:
+      - key: webserver.hostname
+        value: "{{ peertube_tld }}"
+      - key: database.password
+        value: "{{ peertube_dbuser_password }}"
+      - key: smtp.from_address
+        value: "admin@{{ peertube_tld }}"
+      - key: storage.avatars
+        value: "{{ peertube_user_path }}/storage/avatars/"
+      - key: storage.videos
+        value: "{{ peertube_user_path }}/storage/videos/"
+      - key: storage.logs
+        value: "{{ peertube_user_path }}/storage/logs/"
+      - key: storage.previews
+        value: "{{ peertube_user_path }}/storage/previews/"
+      - key: storage.thumbnails
+        value: "{{ peertube_user_path }}/storage/thumbnails/"
+      - key: storage.torrents
+        value: "{{ peertube_user_path }}/storage/torrents/"
+      - key: storage.cache
+        value: "{{ peertube_user_path }}/storage/cache/"
+      - key: admin.email
+        value: "admin@{{ peertube_tld }}"
+      - key: instance.name
+        value: "{{ peertube_tld }}"
+  notify:
+    - restart peertube daemon
+
+- name: Add proxy production.yaml
+  yedit:
+    src: "{{ peertube_user_path }}/config/production.yaml"
+    append: yes
+    key: trust_proxy
+    value: "{{ item }}"
+  loop: "{{ peertube_proxy_ips }}"
+  when: peertube_proxy_ips != []
+  notify:
+    - restart peertube daemon
+
+- name: Install Stretch backports repo
+  apt_repository:
+    repo: deb http://ftp.debian.org/debian stretch-backports main
+    state: present
+  when:
+    - (ansible_distribution_major_version == "9")
+  register: backports_installed
+
+- name: Change apt_preference
+  copy:
+    content: 'APT::Default-Release "stable";'
+    dest: /etc/apt/apt.conf.d/99apt_default
+    mode: 644
+  when: backports_installed is changed
+
+- name: Install Peertube daemon
+  template:
+    src: peertube.service
+    dest: /etc/systemd/system/
+  notify:
+    - install peertube daemon
+
+- name: Add tools in $PATH
+  become: true
+  become_user: peertube
+  lineinfile:
+    path: "{{ peertube_user_path }}/.bashrc"
+    state: present
+    line: 'export PATH="$PATH:{{ peertube_user_path }}/peertube-latest/dist/server/tools/"'
+
+- name: Change admin password
+  become: true
+  become_user: peertube
+  shell: |-1
+    cd "{{ peertube_user_path }}/peertube-latest"
+    yarn add commander
+    # FIXME escape characters
+    echo "{{ peertube_web_admin_password }}" | NODE_CONFIG_DIR={{ peertube_user_path }}/config NODE_ENV=production npm run reset-password -- -u root
+  when:
+  - peertube_version_dir.stat.exists == False
+  - fresh_install # is changed
+  - peertube_web_admin_password is defined

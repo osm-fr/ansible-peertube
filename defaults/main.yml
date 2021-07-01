@@ -1,7 +1,7 @@
 ---
 # defaults file for peertube
 peertube_tld: localhost
-peertube_version: v1.0.0-beta.3
+peertube_version: v3.2.1
 peertube_user_path: /var/www/peertube
 peertube_proxy_handle_https: no
 peertube_proxy_ips: []
